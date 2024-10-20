@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Summary and Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js CDN -->
+</head>
+<body>
+    <h1>Weather Summary and Trends</h1>
+
+    <h2>Daily Weather Summaries</h2>
+    <table border="1">
+        <tr>
+            <th>City</th>
+            <th>Date</th>
+            <th>Avg Temp (°C)</th>
+            <th>Max Temp (°C)</th>
+            <th>Min Temp (°C)</th>
+            <th>Dominant Condition</th>
+        </tr>
+        {% for summary in summaries %}
+        <tr>
+            <td>{{ summary.city }}</td>
+            <td>{{ summary.date }}</td>
+            <td>{{ summary.avg_temp }}</td>
+            <td>{{ summary.max_temp }}</td>
+            <td>{{ summary.min_temp }}</td>
+            <td>{{ summary.dominant_condition }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Temperature Trends</h2>
+
+    <!-- Canvas element for the chart -->
+    <canvas id="tempChart" width="400" height="200" style="border: 1px solid #000;"></canvas>
+
+    
+    <!-- Pass Django data to JavaScript -->
+    <script type="application/json" id="chart-dates">{{ dates|json_script:"chart-dates" }}</script>
+    <script type="application/json" id="chart-temps">{{ avg_temps|json_script:"chart-temps" }}</script>
+
+    <!-- Chart.js script to render the line chart -->
+    <script>
+        // Parse data passed from Django
+        var chartDates = JSON.parse(document.getElementById('chart-dates').textContent);
+        var chartTemps = JSON.parse(document.getElementById('chart-temps').textContent);
+    
+        // Log data to check if it's passed correctly
+        console.log('Dates:', chartDates);
+        console.log('Average Temperatures:', chartTemps);
+    
+        // Create a line chart
+        var ctx = document.getElementById('tempChart').getContext('2d');
+        var tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartDates,  // X-axis (Dates)
+                datasets: [{
+                    label: 'Avg Temperature (°C)',
+                    data: chartTemps,  // Y-axis (Temperatures)
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    </script>
+
+     <!-- Triggered Alerts Section -->
+     <h2>Triggered Alerts</h2>
+     <ul>
+         {% for summary in summaries %}
+             {% if summary.alert_triggered %}
+                 <li>Alert triggered for {{ summary.city }} on {{ summary.date }}: {{ summary.dominant_condition }}</li>
+             {% endif %}
+         {% endfor %}
+     </ul>
+ </body>
+ </html>
+    
